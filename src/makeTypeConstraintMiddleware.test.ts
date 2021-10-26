@@ -1,6 +1,5 @@
 import { makeTypeConstraintMiddleware } from './makeTypeConstraintMiddleware'
-import { Roles } from '.'
-import { GraphQLResolveInfo } from 'graphql'
+import { Roles, Info } from '.'
 
 interface Context {
   currentUser: {
@@ -48,7 +47,7 @@ test('makeTypeConstraintMiddleware', async () => {
     },
   }
 
-  const info: GraphQLResolveInfo = {
+  const info: Info = {
     fieldName: 'User',
     returnType: 'User!' as any,
     schema: {
@@ -61,6 +60,7 @@ test('makeTypeConstraintMiddleware', async () => {
         User: {} as any,
       }),
     } as any,
+    cacheControl: '',
   } as any
 
   expect(await fieldConstraintMiddleware(resolve, myPurchase, {}, context, info)).toMatchObject({

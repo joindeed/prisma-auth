@@ -1,6 +1,5 @@
 import { makeFieldConstraintMiddleware } from './makeFieldConstraintMiddleware'
-import { Roles } from '.'
-import { GraphQLResolveInfo } from 'graphql'
+import { Roles, Info } from '.'
 
 interface Context {
   currentUser: {
@@ -46,7 +45,7 @@ describe('makeFieldConstraintMiddleware', () => {
   }
 
   it('Patch `String` type to `null`', () => {
-    const info: GraphQLResolveInfo = {
+    const info: Info = {
       fieldName: 'ownerOnlyField',
       returnType: 'String' as any,
       parentType: {
@@ -59,13 +58,14 @@ describe('makeFieldConstraintMiddleware', () => {
           } as any,
         }),
       } as any,
+      cacheControl: '',
     } as any
 
     expect(fieldConstraintMiddleware(resolve, myPurchase, {}, context, info)).toBe('myOwnerOnlyField')
     expect(fieldConstraintMiddleware(resolve, foreignPurchase, {}, context, info)).toBe(null)
   })
   it('Patch `String!` type to `""`', () => {
-    const info: GraphQLResolveInfo = {
+    const info: Info = {
       fieldName: 'ownerOnlyField',
       returnType: 'String!' as any,
       parentType: {
@@ -78,13 +78,14 @@ describe('makeFieldConstraintMiddleware', () => {
           } as any,
         }),
       } as any,
+      cacheControl: '',
     } as any
 
     expect(fieldConstraintMiddleware(resolve, myPurchase, {}, context, info)).toBe('myOwnerOnlyField')
     expect(fieldConstraintMiddleware(resolve, foreignPurchase, {}, context, info)).toBe('')
   })
   it('Patch list type to `[]`', () => {
-    const info: GraphQLResolveInfo = {
+    const info: Info = {
       fieldName: 'ownerOnlyField',
       returnType: '[String]!' as any,
       parentType: {
@@ -97,6 +98,7 @@ describe('makeFieldConstraintMiddleware', () => {
           } as any,
         }),
       } as any,
+      cacheControl: '',
     } as any
 
     expect(fieldConstraintMiddleware(resolve, foreignPurchase, {}, context, info)).toEqual([])

@@ -1,6 +1,5 @@
 import { makeQueryConstraintMiddleware } from './makeQueryConstraintMiddleware'
-import { Roles } from '.'
-import { GraphQLResolveInfo } from 'graphql'
+import { Roles, Info } from '.'
 
 interface Context {
   currentUser: {
@@ -42,9 +41,9 @@ test('makeQueryConstraintMiddleware', async () => {
     },
   }
   const fieldConstraintMiddleware = makeQueryConstraintMiddleware(roles)
-  const resolve = () => ['some result']
+  const resolve = (root: any, args: unknown, ctx: any) => ctx.where
 
-  const info: GraphQLResolveInfo = {
+  const info: Info = {
     fieldName: 'users',
     returnType: '[User!]!' as any,
     schema: {
@@ -53,11 +52,10 @@ test('makeQueryConstraintMiddleware', async () => {
     parentType: {
       name: 'Query',
     } as any,
+    cacheControl: '',
   } as any
 
-  expect(await fieldConstraintMiddleware(resolve, {}, {}, context, info)).toEqual(['some result'])
-
-  expect(context.where).toEqual({
+  expect(await fieldConstraintMiddleware(resolve, {}, {}, context, info)).toEqual({
     OR: [
       true,
       {

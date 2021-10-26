@@ -15,7 +15,9 @@
     "strictFunctionTypes": true,
     "skipLibCheck": true,
     "rootDir": "./src",
-    "outDir": "dist"
+    "outDir": "dist",
+    "declaration": true,
+    "declarationMap": true
   },
   "include": ["src/**/*"]
 }

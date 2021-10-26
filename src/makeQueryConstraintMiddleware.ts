@@ -20,14 +20,13 @@ import { descriptionToReadRoles } from './descriptionToReadRoles'
  */
 export const makeQueryConstraintMiddleware: (roles: Roles) => Middleware =
   (roles) => async (resolve, parent, args, context, info) => {
-    const result = await resolve(parent, args, context, info)
     const match = /^\[(\w+)(!)?\]!?$/.exec(String(info.returnType))
     if (!match) {
-      return result
+      return resolve(parent, args, context, info)
     }
     const model = info.schema.getType(match?.[1])
     if (!model) {
-      return result
+      return resolve(parent, args, context, info)
     }
 
     const readRoles = descriptionToReadRoles(model?.description)
@@ -45,5 +44,5 @@ export const makeQueryConstraintMiddleware: (roles: Roles) => Middleware =
         }),
       }
     }
-    return result
+    return resolve(parent, args, context, info)
   }
