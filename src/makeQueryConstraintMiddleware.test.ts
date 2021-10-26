@@ -1,6 +1,14 @@
 import { makeQueryConstraintMiddleware } from './makeQueryConstraintMiddleware'
 import { Roles, Info } from '.'
 
+const alwaysTrueCondition = {
+  id: {
+    not: {
+      equals: 'ffffffffffffffffffffffff',
+    },
+  },
+}
+
 interface Context {
   currentUser: {
     id: string
@@ -55,9 +63,9 @@ test('makeQueryConstraintMiddleware', async () => {
     cacheControl: '',
   } as any
 
-  expect(await fieldConstraintMiddleware(resolve, {}, {}, context, info)).toEqual({
+  expect(await fieldConstraintMiddleware(resolve, {}, {}, context, info)).toMatchObject({
     OR: [
-      true,
+      alwaysTrueCondition,
       {
         id: 'myUserId',
       },

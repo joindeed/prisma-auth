@@ -2,6 +2,14 @@ import { Middleware, Roles } from '.'
 
 import { descriptionToReadRoles } from './descriptionToReadRoles'
 
+const alwaysTrueCondition = {
+  id: {
+    not: {
+      equals: 'ffffffffffffffffffffffff',
+    },
+  },
+}
+
 /**
  * This is used to enforce query consttraints on list queries.
  * It's defined one model level like this:
@@ -34,14 +42,23 @@ export const makeQueryConstraintMiddleware: (roles: Roles) => Middleware =
     // We are "whitelist" by default, so if there are no roles in the description, we don't apply any constraints
     if (readRoles.length > 0) {
       context.where = {
-        OR: readRoles.map((role) => {
-          const config = roles[model?.name as keyof Roles]?.[role]
-          const queryConstraint = config?.queryConstraint
-          if (!queryConstraint) {
-            throw new Error(`Query constraint for role "${role}" in model "${model?.name}" not found`)
-          }
-          return queryConstraint(context)
-        }),
+        OR: readRoles
+          .map((role) => {
+            const config = roles[model?.name as keyof Roles]?.[role]
+            const queryConstraint = config?.queryConstraint
+            if (!queryConstraint) {
+              throw new Error(`Query constraint for role "${role}" in model "${model?.name}" not found`)
+            }
+            const result = queryConstraint(context)
+            if (typeof result === 'object') {
+              return result
+            }
+            if (result === true) {
+              return alwaysTrueCondition
+            }
+            return null
+          })
+          .filter(Boolean),
       }
     }
     return resolve(parent, args, context, info)
