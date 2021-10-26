@@ -8,7 +8,7 @@ export const descriptionToReadRoles = (description?: string | null): string[] =>
   if (!description || !description.includes('@Auth')) {
     return []
   }
-  const match = /@Auth\(read:\s*\[(\w*)\]\)/.exec(description)
+  const match = /@Auth\(\s*read:\s*\[([\w,\s]*)\]\s*\)/.exec(description)
   if (!match?.[1]) {
     return []
   }
