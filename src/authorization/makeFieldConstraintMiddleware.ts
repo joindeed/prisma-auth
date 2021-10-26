@@ -1,6 +1,4 @@
-import { IMiddlewareFunction } from 'graphql-middleware'
-
-import { Roles } from '.'
+import { Roles, Middleware } from '.'
 
 import { descriptionToReadRoles } from './descriptionToReadRoles'
 import { patchResponse } from './patchResponse'
@@ -16,7 +14,7 @@ import { patchResponse } from './patchResponse'
  * }
  * ```
  */
-export const makeFieldConstraintMiddleware: (roles: Roles) => IMiddlewareFunction<unknown, unknown, unknown> =
+export const makeFieldConstraintMiddleware: (roles: Roles) => Middleware =
   (roles) => (resolve, parent, args, context, info) => {
     const description = info.parentType.getFields()[info.fieldName].description
     const typeName = info.parentType.name
