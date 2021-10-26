@@ -1,8 +1,10 @@
-# This is a mere PoC!!! Not production-ready! API will change! Nothing works yet!
+# This is a mere PoC!!! Not production-ready! API will change!
 
 **What?**: declarative authorisation middleware that operates on Prisma level (and not graphql resolver level).
 
-**Why?**: Because imperatively crafting auth rules is dangerous, especially in GraphQL/Prisma world, if we automatically expose the whole schema with Pal.js or similar.
+**Why?**: because imperatively crafting auth rules is dangerous, especially in GraphQL+Prisma world, if we automatically expose the whole schema with Pal.js, nexus-prisma or similar tool.
+
+## Theory
 
 So we support two types of authorisation definitions:
 
@@ -39,15 +41,14 @@ Model level read permissions should be enforced in these scenarios:
 const roles = {
   Purchases: {
     Owner: {
-      matcher: (ctx, record) =>
-        isAuthenticated(ctx) && ctx.currentUser?.id === record?.userId,
+      matcher: (ctx, record) => isAuthenticated(ctx) && ctx.currentUser?.id === record?.userId,
       queryConstraint: (ctx) =>
         isAuthenticated(ctx) && {
           userId: ctx.currentUser?.id,
         },
     },
   },
-};
+}
 ```
 
 `matcher` is used to restrict access to individual records.
@@ -57,6 +58,7 @@ const roles = {
 
 ```js
 import { applyMiddleware } from 'graphql-middleware'
+import { makeAuthorizationMiddlewares } from 'prisma-auth'
 const server = new ApolloServer({
   schema: applyMiddleware(schema, ...makeAuthorizationMiddlewares(roles)),
   ...
@@ -69,8 +71,7 @@ const server = new ApolloServer({
 TODO:
 
 - [ ] enforce authorisation on relation resolver that returns a list of entities
-- [ ] write readme
-- [ ] write tests
+- [ ] write proper readme
 - [ ] update/delete/create operation support
 
 ## Credit
