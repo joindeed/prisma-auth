@@ -20,19 +20,17 @@ import { descriptionToReadRoles } from './descriptionToReadRoles'
     })
  * ```
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const makeQueryConstraintMiddleware: <C, R, W>(roles: Roles<C, R, W>) => IMiddlewareFunction<R, C, unknown> =
+export const makeQueryConstraintMiddleware: (
+  roles: Roles
+) => IMiddlewareFunction<unknown, { where: Record<string, unknown> }, unknown> =
   (roles) => async (resolve, parent, args, context, info) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const result = await resolve(parent, args, context, info)
     const match = /^\[(\w+)(!)?\]!?$/.exec(String(info.returnType))
     if (!match) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return result
     }
     const model = info.schema.getType(match?.[1])
     if (!model) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return result
     }
 
@@ -51,6 +49,5 @@ export const makeQueryConstraintMiddleware: <C, R, W>(roles: Roles<C, R, W>) => 
         }),
       }
     }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return result
   }

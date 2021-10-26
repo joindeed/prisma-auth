@@ -16,8 +16,7 @@ import { patchResponse } from './patchResponse'
  * }
  * ```
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const makeFieldConstraintMiddleware: (roles: Roles) => IMiddlewareFunction<any, unknown, unknown> =
+export const makeFieldConstraintMiddleware: (roles: Roles) => IMiddlewareFunction<unknown, unknown, unknown> =
   (roles) => (resolve, parent, args, context, info) => {
     const description = info.parentType.getFields()[info.fieldName].description
     const typeName = info.parentType.name
@@ -41,6 +40,5 @@ export const makeFieldConstraintMiddleware: (roles: Roles) => IMiddlewareFunctio
       }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return resolve(parent, args, context, info)
   }

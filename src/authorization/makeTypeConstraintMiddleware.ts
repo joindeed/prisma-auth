@@ -32,15 +32,12 @@ const extractNonListType = (type: unknown): string | null => {
  * ```
  * `Purchase.User` here should be automatically enforced
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const makeTypeConstraintMiddleware: (roles: Roles) => IMiddlewareFunction<any, unknown, unknown> =
   (roles) => async (resolve, parent, args, context, info) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const result = await resolve(parent, args, context, info)
 
     const typeName = extractNonListType(info.returnType)
     if (!typeName) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       return result
     }
 
@@ -61,6 +58,5 @@ export const makeTypeConstraintMiddleware: (roles: Roles) => IMiddlewareFunction
       }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return result
   }
