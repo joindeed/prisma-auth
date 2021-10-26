@@ -1,6 +1,4 @@
-import { IMiddlewareFunction } from 'graphql-middleware'
-
-import { Roles } from '.'
+import { Middleware, Roles } from '.'
 
 import { descriptionToReadRoles } from './descriptionToReadRoles'
 import { patchResponse } from './patchResponse'
@@ -32,7 +30,7 @@ const extractNonListType = (type: unknown): string | null => {
  * ```
  * `Purchase.User` here should be automatically enforced
  */
-export const makeTypeConstraintMiddleware: (roles: Roles) => IMiddlewareFunction<any, unknown, unknown> =
+export const makeTypeConstraintMiddleware: (roles: Roles) => Middleware =
   (roles) => async (resolve, parent, args, context, info) => {
     const result = await resolve(parent, args, context, info)
 
@@ -46,7 +44,7 @@ export const makeTypeConstraintMiddleware: (roles: Roles) => IMiddlewareFunction
 
     if (readRoles.length > 0) {
       const granted = readRoles.some((role) => {
-        const roleMatcher = roles[model?.name]?.[role]?.matcher
+        const roleMatcher = roles[model?.name as any]?.[role]?.matcher
         if (!roleMatcher) {
           throw new Error(`Role "${role}" in model "${model?.name}" not found`)
         }
