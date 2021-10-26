@@ -1,6 +1,4 @@
-import { IMiddlewareFunction } from 'graphql-middleware'
-
-import { Roles } from '.'
+import { Middleware, Roles } from '.'
 
 import { descriptionToReadRoles } from './descriptionToReadRoles'
 
@@ -20,9 +18,7 @@ import { descriptionToReadRoles } from './descriptionToReadRoles'
     })
  * ```
  */
-export const makeQueryConstraintMiddleware: (
-  roles: Roles
-) => IMiddlewareFunction<unknown, { where: Record<string, unknown> }, unknown> =
+export const makeQueryConstraintMiddleware: (roles: Roles) => Middleware =
   (roles) => async (resolve, parent, args, context, info) => {
     const result = await resolve(parent, args, context, info)
     const match = /^\[(\w+)(!)?\]!?$/.exec(String(info.returnType))

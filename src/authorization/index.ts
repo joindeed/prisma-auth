@@ -15,11 +15,11 @@ export interface Roles<C = any, R = any, W = any> {
   }
 }
 
-export type Middleware = <P = {}, A = {}, C = {}>(
-  resolve: (parent: P, args: A, context: C, info: GraphQLResolveInfo) => unknown,
-  parent: P,
-  args: A,
-  context: C,
+export type Middleware = (
+  resolve: (parent: {}, args: {}, context: { where?: unknown }, info: GraphQLResolveInfo) => unknown,
+  parent: {},
+  args: {},
+  context: { where?: unknown },
   info: GraphQLResolveInfo
 ) => unknown
 

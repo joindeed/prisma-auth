@@ -6,6 +6,7 @@ interface Context {
   currentUser: {
     id: string
   }
+  where?: unknown
 }
 interface Purchase {
   id: string
@@ -31,7 +32,7 @@ describe('makeFieldConstraintMiddleware', () => {
     },
   }
   const fieldConstraintMiddleware = makeFieldConstraintMiddleware(roles)
-  const resolve = (record: Purchase) => record?.ownerOnlyField
+  const resolve = (record: any) => record?.ownerOnlyField
 
   const myPurchase = {
     id: 'myPurchaseId',

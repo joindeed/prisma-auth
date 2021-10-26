@@ -6,6 +6,7 @@ interface Context {
   currentUser: {
     id: string
   }
+  where?: unknown
 }
 interface Purchase {
   id: string
@@ -32,7 +33,7 @@ test('makeTypeConstraintMiddleware', async () => {
     },
   }
   const fieldConstraintMiddleware = makeTypeConstraintMiddleware(roles)
-  const resolve = (record: Purchase) => record?.User
+  const resolve = (record: any) => record?.User
 
   const myPurchase = {
     id: 'myPurchaseId',
