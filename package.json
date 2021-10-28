@@ -4,9 +4,10 @@
   "description": "Declarative Prisma Authorization layer",
   "main": "dist/index.js",
   "scripts": {
+    "clean": "rm -rf dist",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "build": "tsc",
+    "build": "yarn clean && tsc",
     "prepublish": "yarn test && yarn build",
     "rebuild-parser": "yarn tspegjs -o src/generated/parser.ts src/descriptionGrammar.pegjs"
   },
