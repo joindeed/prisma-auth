@@ -16,7 +16,7 @@ RoleArray = "[" roles:Role* "]" { return roles }
 
 Role = _ name:RoleName args:RoleArguments? _ ","? _ { return {name,args} }
 
-RoleName = ValidIdentifier
+RoleName = KeyIdentifier
 
 RoleArguments = "(" args:(ArgumentWithValue*) ")" {
   	return args.reduce((acc: any, curr: any) => {
@@ -27,15 +27,17 @@ RoleArguments = "(" args:(ArgumentWithValue*) ")" {
 
 ArgumentWithValue = _ name:ArgumentName ":" _ value:ArgumentValue _ ","? _ {return {name, value}}
 
-ArgumentName = ValidIdentifier
+ArgumentName = KeyIdentifier
 
-ArgumentValue = Array / ValidIdentifier
+ArgumentValue = Array / ValueIdentifier
 
 Array = "[" values:ArrayMember* "]" {return values}
 
-ArrayMember = _ value:ValidIdentifier _ ","? {return value}
+ArrayMember = _ value:ValueIdentifier _ ","? {return value}
 
-ValidIdentifier = value:[A-Za-z0-9-]+ { return value.join('') }
+KeyIdentifier = value:[A-Za-z0-9]+ { return value.join('') }
+ValueIdentifier = value:[A-Za-z0-9-:]+ { return value.join('') }
+
 
 _ "whitespace"
   = [ \t\n\r]* {return null}

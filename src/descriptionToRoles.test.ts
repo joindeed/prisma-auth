@@ -25,13 +25,15 @@ describe('descriptionToRoles', () => {
   })
 
   it('roles with args', () => {
-    expect(descriptionToRoles('@Auth(read:[ User(privileges:[featureA],type:some-type,approved:true) ])')).toEqual({
+    expect(
+      descriptionToRoles('@Auth(read:[ User(privileges:[featureA:something],type:some-type:something,approved:true) ])')
+    ).toEqual({
       read: [
         {
           name: 'User',
           args: {
-            privileges: ['featureA'],
-            type: 'some-type',
+            privileges: ['featureA:something'],
+            type: 'some-type:something',
             approved: 'true',
           },
         },
