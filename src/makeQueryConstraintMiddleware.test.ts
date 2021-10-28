@@ -1,5 +1,5 @@
 import { makeQueryConstraintMiddleware } from './makeQueryConstraintMiddleware'
-import { Roles, Info } from '.'
+import { RolesPerType, Info, Role } from '.'
 
 const alwaysTrueCondition = {
   id: {
@@ -12,6 +12,7 @@ const alwaysTrueCondition = {
 interface Context {
   currentUser: {
     id: string
+    isAdmin?: boolean
   }
   where?: unknown
 }
@@ -22,15 +23,25 @@ interface Purchase {
   }
 }
 
-const context: Context = {
+const userContext: Context = {
   currentUser: {
     id: 'myUserId',
   },
-  where: undefined,
+}
+const strangerContext: Context = {
+  currentUser: {
+    id: 'strangerUserId',
+  },
+}
+const adminContext: Context = {
+  currentUser: {
+    id: 'myUserId',
+    isAdmin: true,
+  },
 }
 
 test('makeQueryConstraintMiddleware', async () => {
-  const roles: Roles<Context, Purchase> = {
+  const rolesPerType: RolesPerType<Context, Purchase> = {
     User: {
       Owner: {
         matcher: (ctx, record) => ctx.currentUser?.id === record?.id,
@@ -38,17 +49,19 @@ test('makeQueryConstraintMiddleware', async () => {
           id: ctx.currentUser?.id,
         }),
       },
-      Admin: {
-        matcher: () => true,
-        queryConstraint: () => true,
-      },
       Nobody: {
         matcher: () => false,
         queryConstraint: () => false,
       },
     },
   }
-  const fieldConstraintMiddleware = makeQueryConstraintMiddleware(roles)
+  const globalRoles: { [role: string]: Role<Context, any, any> } = {
+    Admin: {
+      matcher: (ctx) => ctx.currentUser?.isAdmin === true,
+      queryConstraint: (ctx) => ctx.currentUser?.isAdmin === true,
+    },
+  }
+  const fieldConstraintMiddleware = makeQueryConstraintMiddleware({ rolesPerType, globalRoles })
   const resolve = (root: any, args: unknown, ctx: any) => ctx.where
 
   const info: Info = {
@@ -63,11 +76,25 @@ test('makeQueryConstraintMiddleware', async () => {
     cacheControl: '',
   } as any
 
-  expect(await fieldConstraintMiddleware(resolve, {}, {}, context, info)).toMatchObject({
+  expect(await fieldConstraintMiddleware(resolve, {}, {}, userContext, info)).toEqual({
+    OR: [
+      {
+        id: 'myUserId',
+      },
+    ],
+  })
+  expect(await fieldConstraintMiddleware(resolve, {}, {}, adminContext, info)).toEqual({
     OR: [
       alwaysTrueCondition,
       {
         id: 'myUserId',
+      },
+    ],
+  })
+  expect(await fieldConstraintMiddleware(resolve, {}, {}, strangerContext, info)).toEqual({
+    OR: [
+      {
+        id: 'strangerUserId',
       },
     ],
   })

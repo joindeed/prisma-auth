@@ -1,9 +1,10 @@
 import { makeTypeConstraintMiddleware } from './makeTypeConstraintMiddleware'
-import { Roles, Info } from '.'
+import { RolesPerType, Info, Role } from '.'
 
 interface Context {
   currentUser: {
     id: string
+    isAdmin?: boolean
   }
   where?: unknown
 }
@@ -14,14 +15,25 @@ interface Purchase {
   }
 }
 
-const context: Context = {
+const userContext: Context = {
   currentUser: {
     id: 'myUserId',
   },
 }
+const strangerContext: Context = {
+  currentUser: {
+    id: 'strangerUserId',
+  },
+}
+const adminContext: Context = {
+  currentUser: {
+    id: 'myUserId',
+    isAdmin: true,
+  },
+}
 
 test('makeTypeConstraintMiddleware', async () => {
-  const roles: Roles<Context, Purchase> = {
+  const rolesPerType: RolesPerType<Context, Purchase> = {
     User: {
       Owner: {
         matcher: (ctx, record) => ctx.currentUser?.id === record?.id,
@@ -31,7 +43,13 @@ test('makeTypeConstraintMiddleware', async () => {
       },
     },
   }
-  const fieldConstraintMiddleware = makeTypeConstraintMiddleware(roles)
+  const globalRoles: { [role: string]: Role<Context, any, any> } = {
+    Admin: {
+      matcher: (ctx) => ctx.currentUser?.isAdmin === true,
+      queryConstraint: (ctx) => ctx.currentUser?.isAdmin === true,
+    },
+  }
+  const fieldConstraintMiddleware = makeTypeConstraintMiddleware({ rolesPerType, globalRoles })
   const resolve = (record: any) => record?.User
 
   const myPurchase = {
@@ -51,7 +69,7 @@ test('makeTypeConstraintMiddleware', async () => {
     fieldName: 'User',
     returnType: 'User!' as any,
     schema: {
-      getType: (typeName: string) => ({ description: '@Auth(read:[Owner])', name: typeName }),
+      getType: (typeName: string) => ({ description: '@Auth(read:[Owner,Admin])', name: typeName }),
     },
     parentType: {
       name: 'Purchase',
@@ -63,8 +81,14 @@ test('makeTypeConstraintMiddleware', async () => {
     cacheControl: '',
   } as any
 
-  expect(await fieldConstraintMiddleware(resolve, myPurchase, {}, context, info)).toMatchObject({
+  expect(await fieldConstraintMiddleware(resolve, myPurchase, {}, userContext, info)).toEqual({
     id: 'myUserId',
   })
-  expect(await fieldConstraintMiddleware(resolve, foreignPurchase, {}, context, info)).toBe(null)
+  expect(await fieldConstraintMiddleware(resolve, foreignPurchase, {}, userContext, info)).toBe(null)
+
+  expect(await fieldConstraintMiddleware(resolve, foreignPurchase, {}, adminContext, info)).toEqual({
+    id: 'foreignUserId',
+  })
+
+  expect(await fieldConstraintMiddleware(resolve, myPurchase, {}, strangerContext, info)).toBe(null)
 })

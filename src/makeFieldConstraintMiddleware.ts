@@ -1,4 +1,4 @@
-import { Roles, Middleware } from '.'
+import { RolesPerType, Middleware, Configuration } from '.'
 
 import { descriptionToReadRoles } from './descriptionToReadRoles'
 import { patchResponse } from './patchResponse'
@@ -14,8 +14,9 @@ import { patchResponse } from './patchResponse'
  * }
  * ```
  */
-export const makeFieldConstraintMiddleware: (roles: Roles) => Middleware =
-  (roles) => (resolve, parent, args, context, info) => {
+export const makeFieldConstraintMiddleware: (roles: Configuration) => Middleware =
+  ({ rolesPerType, globalRoles }) =>
+  (resolve, parent, args, context, info) => {
     const description = info.parentType.getFields()[info.fieldName].description
     const typeName = info.parentType.name
 
@@ -25,8 +26,8 @@ export const makeFieldConstraintMiddleware: (roles: Roles) => Middleware =
     if (readRoles.length > 0) {
       // At least one role must be granted
       const granted = readRoles.some((role) => {
-        const config = roles[typeName as keyof Roles]?.[role]
-        const roleMatcher = config?.matcher
+        const roleMatcher =
+          rolesPerType?.[typeName as keyof RolesPerType]?.[role]?.matcher || globalRoles?.[role]?.matcher
         if (!roleMatcher) {
           throw new Error(`Role matcher for role "${role}" in model "${typeName}" not found`)
         }

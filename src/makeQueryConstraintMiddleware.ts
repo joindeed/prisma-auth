@@ -1,4 +1,4 @@
-import { Middleware, Roles } from '.'
+import { Middleware, RolesPerType, Configuration } from '.'
 
 import { descriptionToReadRoles } from './descriptionToReadRoles'
 
@@ -26,8 +26,9 @@ const alwaysTrueCondition = {
     })
  * ```
  */
-export const makeQueryConstraintMiddleware: (roles: Roles) => Middleware =
-  (roles) => async (resolve, parent, args, context, info) => {
+export const makeQueryConstraintMiddleware: (config: Configuration) => Middleware =
+  ({ rolesPerType, globalRoles }) =>
+  async (resolve, parent, args, context, info) => {
     const match = /^\[(\w+)(!)?\]!?$/.exec(String(info.returnType))
     if (!match) {
       return resolve(parent, args, context, info)
@@ -44,8 +45,9 @@ export const makeQueryConstraintMiddleware: (roles: Roles) => Middleware =
       context.where = {
         OR: readRoles
           .map((role) => {
-            const config = roles[model?.name as keyof Roles]?.[role]
-            const queryConstraint = config?.queryConstraint
+            const queryConstraint =
+              rolesPerType?.[model?.name as keyof RolesPerType]?.[role]?.queryConstraint ||
+              globalRoles?.[role]?.queryConstraint
             if (!queryConstraint) {
               throw new Error(`Query constraint for role "${role}" in model "${model?.name}" not found`)
             }
