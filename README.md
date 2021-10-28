@@ -58,7 +58,7 @@ const roles = {
 
 ```js
 import { applyMiddleware } from 'graphql-middleware'
-import { makeAuthorizationMiddlewares } from '@joindeed/prisma-auth'
+import { makeAuthorizationMiddlewares } from 'prisma-auth'
 const server = new ApolloServer({
   schema: applyMiddleware(schema, ...makeAuthorizationMiddlewares(roles)),
   ...

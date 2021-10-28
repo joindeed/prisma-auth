@@ -1,5 +1,5 @@
 {
-  "name": "@joindeed/prisma-auth",
+  "name": "prisma-auth",
   "version": "0.1.0",
   "description": "Declarative Prisma Authorization layer",
   "main": "dist/index.js",
