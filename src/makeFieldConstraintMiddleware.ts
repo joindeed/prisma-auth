@@ -1,6 +1,6 @@
 import { RolesPerType, Middleware, Configuration } from '.'
 
-import { descriptionToReadRoles } from './descriptionToReadRoles'
+import { descriptionToRoles } from './descriptionToRoles'
 import { patchResponse } from './patchResponse'
 
 /**
@@ -20,18 +20,18 @@ export const makeFieldConstraintMiddleware: (roles: Configuration) => Middleware
     const description = info.parentType.getFields()[info.fieldName].description
     const typeName = info.parentType.name
 
-    const readRoles = descriptionToReadRoles(description)
+    const readRoles = descriptionToRoles(description)?.read || []
 
     // We are "whitelist" by default, so if there are no roles in the description, we don't apply any constraints
     if (readRoles.length > 0) {
       // At least one role must be granted
       const granted = readRoles.some((role) => {
         const roleMatcher =
-          rolesPerType?.[typeName as keyof RolesPerType]?.[role]?.matcher || globalRoles?.[role]?.matcher
+          rolesPerType?.[typeName as keyof RolesPerType]?.[role.name]?.matcher || globalRoles?.[role.name]?.matcher
         if (!roleMatcher) {
-          throw new Error(`Role matcher for role "${role}" in model "${typeName}" not found`)
+          throw new Error(`Role matcher for role "${role.name}" in model "${typeName}" not found`)
         }
-        return roleMatcher(context, parent)
+        return roleMatcher(context, parent, role.args)
       })
 
       if (!granted) {

@@ -1,6 +1,6 @@
 import { Configuration, Middleware, RolesPerType } from '.'
 
-import { descriptionToReadRoles } from './descriptionToReadRoles'
+import { descriptionToRoles } from './descriptionToRoles'
 import { patchResponse } from './patchResponse'
 
 /**
@@ -41,15 +41,16 @@ export const makeTypeConstraintMiddleware: (config: Configuration) => Middleware
     }
 
     const model = info.schema.getType(typeName)
-    const readRoles = descriptionToReadRoles(model?.description)
+    const readRoles = descriptionToRoles(model?.description)?.read || []
 
     if (readRoles.length > 0) {
       const granted = readRoles.some((role) => {
-        const roleMatcher = rolesPerType?.[model?.name as any]?.[role]?.matcher || globalRoles?.[role]?.matcher
+        const roleMatcher =
+          rolesPerType?.[model?.name as any]?.[role.name]?.matcher || globalRoles?.[role.name]?.matcher
         if (!roleMatcher) {
           throw new Error(`Role "${role}" in model "${model?.name}" not found`)
         }
-        return roleMatcher(context, result)
+        return roleMatcher(context, result, role.args)
       })
 
       if (!granted) {

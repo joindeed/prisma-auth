@@ -3,10 +3,11 @@ import { IMiddlewareResolver } from 'graphql-middleware/dist/types'
 import { makeQueryConstraintMiddleware } from './makeQueryConstraintMiddleware'
 import { makeFieldConstraintMiddleware } from './makeFieldConstraintMiddleware'
 import { makeTypeConstraintMiddleware } from './makeTypeConstraintMiddleware'
+import { RoleArgs } from './descriptionToRoles'
 
 export interface Role<C, R, W> {
-  matcher: (context: C, record: R) => boolean
-  queryConstraint: (context: C) => W | boolean
+  matcher: (context: C, record: R, roleArgs: RoleArgs) => boolean
+  queryConstraint: (context: C, roleArgs: RoleArgs) => W | boolean
 }
 
 export interface RolesPerType<C = any, R = any, W = any> {

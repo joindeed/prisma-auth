@@ -2113,6 +2113,11 @@ path-parse@^1.0.6:
   resolved "https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.7.tgz#fbc114b60ca42b30d9daf5858e4bd68bbedb6735"
   integrity sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==
 
+peggy@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/peggy/-/peggy-1.2.0.tgz#657ba45900cbef1dc9f52356704bdbb193c2021c"
+  integrity sha512-PQ+NKpAobImfMprYQtc4Egmyi29bidRGEX0kKjCU5uuW09s0Cthwqhfy7mLkwcB4VcgacE5L/ZjruD/kOPCUUw==
+
 picocolors@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/picocolors/-/picocolors-1.0.0.tgz#cb5bdc74ff3f51892236eaf79d68bc44564ab81c"
@@ -2439,6 +2444,13 @@ ts-jest@^27.0.7:
     make-error "1.x"
     semver "7.x"
     yargs-parser "20.x"
+
+ts-pegjs@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/ts-pegjs/-/ts-pegjs-1.2.1.tgz#9b2ef035a9411845eae575a18054824825f726a5"
+  integrity sha512-fvT1oBQKMO3+9MJSUELTIuwkMs0IXJ2iEUCIw6yIriz7agh+OAwAL5Q9y3WiqzxwNF+M+xuK676UVRZxBcaOmQ==
+  dependencies:
+    peggy "^1.2.0"
 
 tslib@~2.3.0:
   version "2.3.1"

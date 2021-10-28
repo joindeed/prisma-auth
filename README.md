@@ -12,7 +12,7 @@ So we support two types of authorisation definitions:
 
 ```
 model User {
-  /// @Auth(read:[Owner,Admin])
+  /// @Auth(read:[ Owner, Admin(privileges:[x,y,z],smth:else) ])
   email String
 }
 ```
@@ -41,8 +41,8 @@ Model level read permissions should be enforced in these scenarios:
 const roles = {
   Purchases: {
     Owner: {
-      matcher: (ctx, record) => isAuthenticated(ctx) && ctx.currentUser?.id === record?.userId,
-      queryConstraint: (ctx) =>
+      matcher: (ctx, record, roleArgs) => isAuthenticated(ctx) && ctx.currentUser?.id === record?.userId,
+      queryConstraint: (ctx, roleArgs) =>
         isAuthenticated(ctx) && {
           userId: ctx.currentUser?.id,
         },

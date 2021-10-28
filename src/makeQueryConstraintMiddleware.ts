@@ -1,6 +1,6 @@
 import { Middleware, RolesPerType, Configuration } from '.'
 
-import { descriptionToReadRoles } from './descriptionToReadRoles'
+import { descriptionToRoles } from './descriptionToRoles'
 
 const alwaysTrueCondition = {
   id: {
@@ -38,7 +38,7 @@ export const makeQueryConstraintMiddleware: (config: Configuration) => Middlewar
       return resolve(parent, args, context, info)
     }
 
-    const readRoles = descriptionToReadRoles(model?.description)
+    const readRoles = descriptionToRoles(model?.description)?.read || []
 
     // We are "whitelist" by default, so if there are no roles in the description, we don't apply any constraints
     if (readRoles.length > 0) {
@@ -46,12 +46,12 @@ export const makeQueryConstraintMiddleware: (config: Configuration) => Middlewar
         OR: readRoles
           .map((role) => {
             const queryConstraint =
-              rolesPerType?.[model?.name as keyof RolesPerType]?.[role]?.queryConstraint ||
-              globalRoles?.[role]?.queryConstraint
+              rolesPerType?.[model?.name as keyof RolesPerType]?.[role.name]?.queryConstraint ||
+              globalRoles?.[role.name]?.queryConstraint
             if (!queryConstraint) {
-              throw new Error(`Query constraint for role "${role}" in model "${model?.name}" not found`)
+              throw new Error(`Query constraint for role "${role.name}" in model "${model?.name}" not found`)
             }
-            const result = queryConstraint(context)
+            const result = queryConstraint(context, role.args)
             if (typeof result === 'object') {
               return result
             }
