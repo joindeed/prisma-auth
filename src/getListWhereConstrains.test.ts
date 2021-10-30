@@ -1,5 +1,5 @@
-import { makeQueryConstraintMiddleware } from './makeQueryConstraintMiddleware'
-import { RolesPerType, Info, Role } from '.'
+import { getListWhereConstrains } from './getListWhereConstrains'
+import { RolesPerType, Role } from '.'
 
 const alwaysTrueCondition = {
   id: {
@@ -14,7 +14,7 @@ interface Context {
     id: string
     isAdmin?: boolean
   }
-  where?: unknown
+  withAuth: <T extends unknown>(query: T) => T
 }
 interface Purchase {
   id: string
@@ -27,20 +27,23 @@ const userContext: Context = {
   currentUser: {
     id: 'myUserId',
   },
+  withAuth: (t) => t,
 }
 const strangerContext: Context = {
   currentUser: {
     id: 'strangerUserId',
   },
+  withAuth: (t) => t,
 }
 const adminContext: Context = {
   currentUser: {
     id: 'myUserId',
     isAdmin: true,
   },
+  withAuth: (t) => t,
 }
 
-test('makeQueryConstraintMiddleware', async () => {
+test('makeListConstraintMiddleware', async () => {
   const rolesPerType: RolesPerType<Context, Purchase> = {
     User: {
       Owner: {
@@ -61,29 +64,16 @@ test('makeQueryConstraintMiddleware', async () => {
       queryConstraint: (ctx) => ctx.currentUser?.isAdmin === true,
     },
   }
-  const fieldConstraintMiddleware = makeQueryConstraintMiddleware({ rolesPerType, globalRoles })
-  const resolve = (root: any, args: unknown, ctx: any) => ctx.where
+  const config = { globalRoles, rolesPerType }
 
-  const info: Info = {
-    fieldName: 'users',
-    returnType: '[User!]!' as any,
-    schema: {
-      getType: (typeName: string) => ({ description: '@Auth(read:[Admin,Owner])', name: typeName }),
-    },
-    parentType: {
-      name: 'Query',
-    } as any,
-    cacheControl: '',
-  } as any
-
-  expect(await fieldConstraintMiddleware(resolve, {}, {}, userContext, info)).toEqual({
+  expect(await getListWhereConstrains('User', '@Auth(read:[Admin,Owner])', config, userContext)).toEqual({
     OR: [
       {
         id: 'myUserId',
       },
     ],
   })
-  expect(await fieldConstraintMiddleware(resolve, {}, {}, adminContext, info)).toEqual({
+  expect(await getListWhereConstrains('User', '@Auth(read:[Admin,Owner])', config, adminContext)).toEqual({
     OR: [
       alwaysTrueCondition,
       {
@@ -91,7 +81,7 @@ test('makeQueryConstraintMiddleware', async () => {
       },
     ],
   })
-  expect(await fieldConstraintMiddleware(resolve, {}, {}, strangerContext, info)).toEqual({
+  expect(await getListWhereConstrains('User', '@Auth(read:[Admin,Owner])', config, strangerContext)).toEqual({
     OR: [
       {
         id: 'strangerUserId',

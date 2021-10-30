@@ -1,6 +1,16 @@
 import { Configuration, Context, RolesPerType } from '.'
 import { descriptionToRoles } from './descriptionToRoles'
-import { alwaysTrueCondition } from './makeQueryConstraintMiddleware'
+
+/**
+ * We need some kind of Prisma condition that would be always TRUE. This is the best I could think of...
+ */
+export const alwaysTrueCondition = {
+  id: {
+    not: {
+      equals: 'ffffffffffffffffffffffff',
+    },
+  },
+}
 
 /**
  * Generate a Prisma `where` clause for filtering list queries and list relations

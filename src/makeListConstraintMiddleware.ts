@@ -2,14 +2,6 @@ import { Middleware, Configuration } from '.'
 
 import { PrismaSelect } from './select'
 
-export const alwaysTrueCondition = {
-  id: {
-    not: {
-      equals: 'ffffffffffffffffffffffff',
-    },
-  },
-}
-
 /**
  * This is used to enforce query consttraints on list queries and on nested relation queries.
  * Additionally this middleware takes over the responsibility
@@ -21,18 +13,21 @@ export const alwaysTrueCondition = {
  * model Purchase {}
  * ```
  *
- * It generates a Prisma `where` clause and sets it onto `context.auth`, together with `select` clause.
+ * It generates a Prisma `where` and `select` clauses and overlays them over user parameters with the help of `context.withAuth`.
  * DO NOT FORGET TO APPLY IT TO THE QUERY LIKE THIS TO ALL PRISMA QUERIES:
  * ```
-  context.prisma.purchase.findMany({
-    ...context.auth,
-  })
+  context.prisma.purchase.findMany(context.withAuth({
+    where: { some: 'query' }
+  }))
  * ```
  */
-export const makeQueryConstraintMiddleware: (config: Configuration) => Middleware =
+export const makeListConstraintMiddleware: (config: Configuration) => Middleware =
   (options) => async (resolve, parent, args, context, info) => {
     const select = new PrismaSelect(info, options, context)
     context.auth = select.value
+
+    // The order here is important: auth must be set last so it wouldn't be possible to override it with the query
+    context.withAuth = <T extends unknown>(query: T): T => PrismaSelect.mergeDeep({}, query, select.value)
 
     return resolve(parent, args, context, info)
   }

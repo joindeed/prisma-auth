@@ -33,7 +33,7 @@ Model level read permissions should be enforced in these scenarios:
 
 ## Usage
 
-1. Define auth annotations as Prisma comments (see above, not tripple slash)
+1. Define @Auth annotations as Prisma comments (see above, note tripple slash)
 
 2. Define role matchers per each Prisma model in this fashion:
 
@@ -76,13 +76,15 @@ const server = new ApolloServer({
 
 ```
 
-4. Apply `context.auth` to every Prisma call
+4. Apply `context.withAuth` to every Prisma call
 
 ```js
 resolve: async (parent, args, context) =>
-  return context.prisma.purchases.findMany({
-    ...context.auth,
-  })
+  return context.prisma.purchases.findMany(context.withAuth({
+    where: {
+      some: 'query'
+    }
+  }))
 },
 ```
 

@@ -1,6 +1,6 @@
 import { IMiddlewareResolver } from 'graphql-middleware/dist/types'
 
-import { makeQueryConstraintMiddleware } from './makeQueryConstraintMiddleware'
+import { makeListConstraintMiddleware } from './makeListConstraintMiddleware'
 import { makeFieldConstraintMiddleware } from './makeFieldConstraintMiddleware'
 import { makeTypeConstraintMiddleware } from './makeTypeConstraintMiddleware'
 import { RoleArgs } from './descriptionToRoles'
@@ -25,7 +25,7 @@ export interface Configuration {
 
 // @TODO: fix types
 export type Info = any
-export type Context = { auth?: unknown }
+export type Context = { auth?: unknown; withAuth: <T extends unknown>(query: T) => T }
 
 export type Middleware = IMiddlewareResolver
 
@@ -33,7 +33,7 @@ export type Middleware = IMiddlewareResolver
  * Take roles config and create a bunch of middlewares for various aspects of authorization
  */
 export const makeAuthorizationMiddlewares = (config: Configuration) => [
-  makeQueryConstraintMiddleware(config),
-  makeTypeConstraintMiddleware(config),
   makeFieldConstraintMiddleware(config),
+  makeTypeConstraintMiddleware(config),
+  makeListConstraintMiddleware(config),
 ]
