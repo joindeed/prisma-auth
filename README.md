@@ -4,6 +4,11 @@
 
 **Why?**: Because imperatively crafting authorization rules is dangerous, especially in GraphQL+Prisma world, where we tend to automatically expose the whole schema (with tools like Pal.js, nexus-prisma).
 
+See this thread for tweet-sized introduction:
+
+[![image](https://user-images.githubusercontent.com/837032/139540771-8e84d6d2-0c43-4673-a9f7-9e335d47c8a7.png)](https://twitter.com/dimaip/status/1454480140872949761)
+
+
 ## Theory
 
 Every modern GraphQL platform (like Hasura or MongoDB Realm) offer resource authorisation at the schema level.
