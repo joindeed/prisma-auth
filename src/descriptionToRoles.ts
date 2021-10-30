@@ -2,7 +2,7 @@ import { parse } from './generated/parser'
 
 export type RoleArgs = Record<string, string | string[]>
 
-interface Role {
+export interface RoleDescription {
   name: string
   args: RoleArgs
 }
@@ -15,7 +15,7 @@ interface Role {
  */
 export const descriptionToRoles = (
   description?: string | null
-): Record<'create' | 'read' | 'update' | 'delete', Role[]> | null => {
+): Record<'create' | 'read' | 'update' | 'delete', RoleDescription[]> | null => {
   if (!description || !description.includes('@Auth')) {
     return null
   }

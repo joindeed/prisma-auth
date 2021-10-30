@@ -1,4 +1,4 @@
-# This is a mere PoC!!! Not production-ready! API will change!
+# Not production-ready! API might change!
 
 **What?**: declarative authorisation middleware that operates on Prisma level (and not graphql resolver level).
 
@@ -27,9 +27,9 @@ model Purchases {...}
 Model level read permissions should be enforced in these scenarios:
 
 - custom resolver that returns a single entity of given type
-- custom resolver that returns a list of entities of given type. In this case we should actually enforce authorisation at Prisma query level (using the auto-generated `where` clause)
+- custom resolver that returns a list of entities of given type
 - relation resolver that returns a single entity of given type
-- relation resolver that returns a list of entities of given type. **This one is not yet handled**
+- relation resolver that returns a list of entities of given type
 
 ## Usage
 
@@ -38,21 +38,31 @@ Model level read permissions should be enforced in these scenarios:
 2. Define role matchers per each Prisma model in this fashion:
 
 ```js
-const roles = {
-  Purchases: {
+const config = {
+  globalRoles: {
     Owner: {
-      matcher: (ctx, record, roleArgs) => isAuthenticated(ctx) && ctx.currentUser?.id === record?.userId,
-      queryConstraint: (ctx, roleArgs) =>
-        isAuthenticated(ctx) && {
-          userId: ctx.currentUser?.id,
-        },
+      matcher: (ctx, record, roleArgs) => isAdmin(ctx),
+      queryConstraint: (ctx, roleArgs) => isAdmin(ctx),
     },
   },
+  rolesPerType: {
+    Purchases: {
+      Owner: {
+        matcher: (ctx, record, roleArgs) => isAuthenticated(ctx) && ctx.currentUser?.id === record?.[roleArgs.userField],
+        queryConstraint: (ctx, roleArgs) =>
+          isAuthenticated(ctx) && {
+            userId: ctx.currentUser?.id,
+          },
+      },
+    },
+  }
+  // Optionally provide path to prisma dmmf, if it's not in `@prisma/client`
+  dmmf: [Prisma.dmmf]
 }
 ```
 
 `matcher` is used to restrict access to individual records.
-`queryConstraint` is used to generate a `where` clause for Prisma which should be used to restrict list fields.
+`queryConstraint` is used to generate a `where` clause for Prisma which should be used to restrict list fields and list relations.
 
 3. Configure your GraphQL schema to use the middleware
 
@@ -60,17 +70,26 @@ const roles = {
 import { applyMiddleware } from 'graphql-middleware'
 import { makeAuthorizationMiddlewares } from '@joindeed/prisma-auth'
 const server = new ApolloServer({
-  schema: applyMiddleware(schema, ...makeAuthorizationMiddlewares(roles)),
+  schema: applyMiddleware(schema, ...makeAuthorizationMiddlewares(config)),
   ...
 })
 
+```
+
+4. Apply `context.auth` to every Prisma call
+
+```js
+resolve: async (parent, args, context) =>
+  return context.prisma.purchases.findMany({
+    ...context.auth,
+  })
+},
 ```
 
 **Get in touch if you have ideas how all of this could have been done better!**
 
 TODO:
 
-- [ ] enforce authorisation on relation resolver that returns a list of entities
 - [ ] write proper readme
 - [ ] update/delete/create operation support
 

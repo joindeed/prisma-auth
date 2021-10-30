@@ -20,11 +20,12 @@ export interface Configuration {
   globalRoles?: {
     [roleName: string]: Role<any, any, any>
   }
+  dmmf?: any[]
 }
 
 // @TODO: fix types
 export type Info = any
-export type Context = { where?: unknown }
+export type Context = { auth?: unknown }
 
 export type Middleware = IMiddlewareResolver
 

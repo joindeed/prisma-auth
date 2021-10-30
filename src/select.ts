@@ -4,9 +4,10 @@
  */
 
 import { GraphQLResolveInfo } from 'graphql'
-import { DMMF } from '@prisma/client/runtime'
 // @ts-ignore
 import graphqlFields from 'graphql-fields'
+import { Configuration } from '.'
+import { getListWhereConstrains } from './getListWhereConstrains'
 
 /**
  * Convert `info` to select object accepted by `prisma client`.
@@ -51,24 +52,18 @@ export class PrismaSelect {
   private allowedProps = ['_count']
   private isAggregate: boolean = false
 
-  constructor(
-    private info: GraphQLResolveInfo,
-    private options?: {
-      defaultFields?: {
-        [key: string]: { [key: string]: boolean } | ((select: any) => { [key: string]: boolean })
-      }
-      dmmf?: DMMF.Document[]
-    }
-  ) {}
+  constructor(private info: GraphQLResolveInfo, private options?: Configuration, private context?: any) {}
 
   get value() {
-    const returnType = this.info.returnType.toString().replace(/]/g, '').replace(/\[/g, '').replace(/!/g, '')
+    const rawReturnType = String(this.info.returnType)
+    const isList = /^\[(\w+)(!)?\]!?$/.test(rawReturnType)
+    const returnType = rawReturnType.replace(/]/g, '').replace(/\[/g, '').replace(/!/g, '')
     this.isAggregate = returnType.includes('Aggregate')
-    return this.valueWithFilter(returnType)
+    return this.valueWithFilter(returnType, isList)
   }
 
   get dataModel() {
-    const models: DMMF.Model[] = []
+    const models: any[] = []
     if (this.options?.dmmf) {
       this.options?.dmmf.forEach((doc) => {
         models.push(...doc.datamodel.models)
@@ -80,10 +75,6 @@ export class PrismaSelect {
       }
     }
     return models
-  }
-
-  get defaultFields() {
-    return this.options?.defaultFields
   }
 
   private get fields() {
@@ -113,8 +104,8 @@ export class PrismaSelect {
     return this.dataModel.find((item) => item.name === name || PrismaSelect.getModelMap(item.documentation, name))
   }
 
-  private field(name: string, model?: DMMF.Model) {
-    return model?.fields.find((item) => item.name === name)
+  private field(name: string, model?: any) {
+    return model?.fields.find((item: any) => item.name === name)
   }
 
   static isObject(item: any) {
@@ -195,22 +186,31 @@ export class PrismaSelect {
    * const select = new PrismaSelect(info).valueWithFilter('User');
    *
    **/
-  valueWithFilter(modelName: string) {
-    return this.filterBy(modelName, this.getSelect(this.fields))
+  valueWithFilter(modelName: string, isRootList?: boolean) {
+    return this.filterBy(modelName, this.getSelect(this.fields), isRootList)
   }
 
-  private filterBy(modelName: string, selectObject: any) {
+  /**
+   * @NOTE-DP: we overlay all security `where` clauses within this method
+   */
+  private filterBy(modelName: string, selectObject: any, isRootList?: boolean) {
     const model = this.model(modelName)
     if (model && typeof selectObject === 'object') {
-      let defaultFields = {}
-      if (this.defaultFields && this.defaultFields[modelName]) {
-        const modelFields = this.defaultFields[modelName]
-        defaultFields = typeof modelFields === 'function' ? modelFields(selectObject.select) : modelFields
-      }
       const filteredObject = {
         ...selectObject,
-        select: { ...defaultFields },
+        select: {},
       }
+
+      /**
+       * @NOTE-DP: root level `where` clause. Only for lists
+       */
+      if (isRootList) {
+        const where = getListWhereConstrains(modelName, model?.documentation, this.options, this.context)
+        if (where) {
+          filteredObject.where = where
+        }
+      }
+
       Object.keys(selectObject.select).forEach((key) => {
         if (this.allowedProps.includes(key)) {
           filteredObject.select[key] = selectObject.select[key]
@@ -223,6 +223,21 @@ export class PrismaSelect {
               const subModelFilter = this.filterBy(field.type, selectObject.select[key])
               if (Object.keys(subModelFilter.select).length > 0) {
                 filteredObject.select[key] = subModelFilter
+              }
+
+              /**
+               * @NOTE-DP: list field `where` clause
+               */
+              if (field.isList) {
+                const where = getListWhereConstrains(
+                  field.type,
+                  this.model(field.type)?.documentation,
+                  this.options,
+                  this.context
+                )
+                if (where) {
+                  filteredObject.select[key].where = where
+                }
               }
             }
           }

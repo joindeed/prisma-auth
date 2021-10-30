@@ -1,0 +1,41 @@
+import { Configuration, Context, RolesPerType } from '.'
+import { descriptionToRoles } from './descriptionToRoles'
+import { alwaysTrueCondition } from './makeQueryConstraintMiddleware'
+
+/**
+ * Generate a Prisma `where` clause for filtering list queries and list relations
+ */
+export const getListWhereConstrains = (
+  fieldType: string,
+  description: string,
+  config: Configuration | undefined,
+  context: Context
+) => {
+  const rolesPerType = config?.rolesPerType
+  const globalRoles = config?.globalRoles
+
+  const readRoles = descriptionToRoles(description)?.read || []
+  if (readRoles.length === 0) {
+    return null
+  }
+  return {
+    OR: readRoles
+      .map((role) => {
+        const queryConstraint =
+          rolesPerType?.[fieldType as keyof RolesPerType]?.[role.name]?.queryConstraint ||
+          globalRoles?.[role.name]?.queryConstraint
+        if (!queryConstraint) {
+          throw new Error(`Query constraint for role "${role.name}" in model "${fieldType}" not found`)
+        }
+        const result = queryConstraint(context, role.args)
+        if (typeof result === 'object') {
+          return result
+        }
+        if (result === true) {
+          return alwaysTrueCondition
+        }
+        return null
+      })
+      .filter(Boolean),
+  }
+}
