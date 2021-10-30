@@ -1,19 +1,22 @@
 {
   "name": "@joindeed/prisma-auth",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Declarative Prisma Authorization layer",
   "main": "dist/index.js",
   "scripts": {
     "clean": "rm -rf dist",
-    "test": "jest --coverage",
+    "test": "jest",
+    "test:cov": "jest --coverage",
     "test:watch": "jest --watch",
     "build": "yarn clean && tsc",
-    "prepublish": "yarn test && yarn build",
     "rebuild-parser": "yarn tspegjs -o src/generated/parser.ts src/descriptionGrammar.pegjs"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/joindeed/prisma-auth.git"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "keywords": [
     "Prisma",
