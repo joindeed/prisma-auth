@@ -47,23 +47,23 @@ Note how roles may accept arbitrary arguments that would be passed to the role m
 const config = {
   globalRoles: {
     Owner: {
-      matcher: (ctx, record, roleArgs) => isAdmin(ctx),
-      queryConstraint: (ctx, roleArgs) => isAdmin(ctx),
+      matcher: (ctx, record, roleArgs) => ctx.currentUser?.id === record?.[roleArgs.userField],
+      queryConstraint: (ctx, roleArgs) => ({
+        [roleArgs.userField]: ctx.currentUser?.id,
+      }),
     },
   },
   rolesPerType: {
     Purchases: {
       Owner: {
-        matcher: (ctx, record, roleArgs) => isAuthenticated(ctx) && ctx.currentUser?.id === record?.[roleArgs.userField],
+        matcher: (ctx, record, roleArgs) => someCondition(ctx) && ctx.currentUser?.id === record?.[roleArgs.userField],
         queryConstraint: (ctx, roleArgs) =>
-          isAuthenticated(ctx) && {
-            userId: ctx.currentUser?.id,
+          someCondition(ctx) && {
+            [roleArgs.userField]: ctx.currentUser?.id,
           },
       },
     },
-  }
-  // Optionally provide path to prisma dmmf, if it's not in `@prisma/client`
-  dmmf: [Prisma.dmmf]
+  },
 }
 ```
 
