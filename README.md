@@ -1,41 +1,47 @@
-# Not production-ready! API might change!
+# prisma-auth
 
-**What?**: declarative authorisation middleware that operates on Prisma level (and not graphql resolver level).
+**What?**: A declarative authorisation middleware that operates on Prisma model level (and not on GraphQL resolver level).
 
-**Why?**: because imperatively crafting auth rules is dangerous, especially in GraphQL+Prisma world, if we automatically expose the whole schema with Pal.js, nexus-prisma or similar tool.
+**Why?**: Because imperatively crafting authorization rules is dangerous, especially in GraphQL+Prisma world, where we tend to automatically expose the whole schema (with tools like Pal.js, nexus-prisma).
 
 ## Theory
 
-So we support two types of authorisation definitions:
+Every modern GraphQL platform (like Hasura or MongoDB Realm) offer resource authorisation at the schema level.
+Prisma however lacks such luxury, being merely an ORM.
+But if we are building a GraphQL API on top of Prisma with a tool that automatically exposes all relations (like nexus-prisma, typegraphql-prisma or Pal.js), we're left to handle resource authorisation on our own.
 
-**1. individual field level**
+And suddenly securing all relations inside a resolver becomes a huge P.I.T.A.: are you sure that `Purchase.User.Organization.Users` suddenly won't expose all users on the platform? If you patch it at resolver level it's quite easy to overlook a huge security hole!
+
+Instead, we believe authorisation should be handled at the Prisma model level.
+For each model type, we can define a set of roles that are allowed to access it, together with its fields.
+
+We support two kinds of authorisation definitions:
+
+**1. Model level**
+
+```
+/// @Auth(read: [Owner( privileges: [x,y,z], smth: else ), Admin])
+model Purchases {...}
+```
+
+**2. Individual field level**
 
 ```
 model User {
-  /// @Auth(read:[ Owner, Admin(privileges:[x,y,z],smth:else) ])
+  /// @Auth(read:[ Owner, Admin ])
   email String
 }
 ```
 
-**2. model level**
-
-```
-/// @Auth(read: [Owner,Admin])
-model Purchases {...}
-```
-
-Model level read permissions should be enforced in these scenarios:
-
-- custom resolver that returns a single entity of given type
-- custom resolver that returns a list of entities of given type
-- relation resolver that returns a single entity of given type
-- relation resolver that returns a list of entities of given type
+Note how roles may accept arbitrary arguments that would be passed to the role matcher (see below).
 
 ## Usage
 
-1. Define @Auth annotations as Prisma comments (see above, note tripple slash)
+0. `yarn add @joindeed/prisma-auth`
 
-2. Define role matchers per each Prisma model in this fashion:
+1. Define @Auth annotations as Prisma comments (see above, note triple slash)
+
+2. You can define global role matchers that would apply to all Prisma models, and you may override them per each model:
 
 ```js
 const config = {
@@ -61,22 +67,10 @@ const config = {
 }
 ```
 
-`matcher` is used to restrict access to individual records.
+`matcher` is used to restrict access to individual records. It should return `boolean`.
 `queryConstraint` is used to generate a `where` clause for Prisma which should be used to restrict list fields and list relations.
 
-3. Configure your GraphQL schema to use the middleware
-
-```js
-import { applyMiddleware } from 'graphql-middleware'
-import { makeAuthorizationMiddlewares } from '@joindeed/prisma-auth'
-const server = new ApolloServer({
-  schema: applyMiddleware(schema, ...makeAuthorizationMiddlewares(config)),
-  ...
-})
-
-```
-
-4. Apply `context.withAuth` to every Prisma call
+3. Apply `context.withAuth` to every Prisma call like this:
 
 ```js
 resolve: async (parent, args, context) =>
@@ -88,12 +82,25 @@ resolve: async (parent, args, context) =>
 },
 ```
 
+4. Configure your GraphQL schema to use the middleware
+
+```js
+import { applyMiddleware } from 'graphql-middleware'
+import { makeAuthorizationMiddlewares } from '@joindeed/prisma-auth'
+const server = new ApolloServer({
+  schema: applyMiddleware(schema, ...makeAuthorizationMiddlewares(config)),
+  ...
+})
+```
+
 **Get in touch if you have ideas how all of this could have been done better!**
 
-TODO:
+## Plans
 
-- [ ] write proper readme
-- [ ] update/delete/create operation support
+Currently, this package only supports `read` operations, since it's the biggest concern in terms of GraphQL security.
+`update`/`create`/`delete` are easy to secure with a custom input type.
+
+Nevertheless, we might want to support them in the future.
 
 ## Credit
 
@@ -102,3 +109,6 @@ This package has been proudly developed by the Deed team!
 Check us out, we may be hiring!
 
 https://www.joindeed.com/
+
+The basis for the `select` plugin has been forked from [prisma-tools](https://raw.githubusercontent.com/paljs/prisma-tools/main/packages/plugins/src/select.ts).
+Thanks, Ahmed Elywa!
