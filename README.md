@@ -1,4 +1,4 @@
-# prisma-auth
+# @joindeed/prisma-auth
 
 **What?**: A declarative authorisation middleware that operates on Prisma model level (and not on GraphQL resolver level).
 
