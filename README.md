@@ -6,7 +6,7 @@
 
 See this thread for tweet-sized introduction:
 
-[![image](https://user-images.githubusercontent.com/837032/139540771-8e84d6d2-0c43-4673-a9f7-9e335d47c8a7.png)](https://twitter.com/dimaip/status/1454480140872949761)
+[![image](https://user-images.githubusercontent.com/837032/139540771-8e84d6d2-0c43-4673-a9f7-9e335d47c8a7.png | width=300)](https://twitter.com/dimaip/status/1454480140872949761)
 
 
 ## Theory
