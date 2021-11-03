@@ -205,7 +205,12 @@ export class PrismaSelect {
        * @NOTE-DP: root level `where` clause. Only for lists
        */
       if (isRootList) {
-        const where = getListWhereConstrains(modelName, model?.documentation, this.options, this.context)
+        const where = getListWhereConstrains(
+          modelName,
+          this.info.schema.getType(modelName)?.description || '',
+          this.options,
+          this.context
+        )
         if (where) {
           filteredObject.where = where
         }
@@ -231,7 +236,7 @@ export class PrismaSelect {
               if (field.isList) {
                 const where = getListWhereConstrains(
                   field.type,
-                  this.model(field.type)?.documentation,
+                  this.info.schema.getType(field.type)?.description || '',
                   this.options,
                   this.context
                 )
