@@ -8,6 +8,7 @@ import { GraphQLResolveInfo } from 'graphql'
 import graphqlFields from 'graphql-fields'
 import { Configuration } from '.'
 import { getListWhereConstrains } from './getListWhereConstrains'
+import { getRequiredFields } from './getRequiredFields'
 
 /**
  * Convert `info` to select object accepted by `prisma client`.
@@ -222,6 +223,19 @@ export class PrismaSelect {
         } else {
           const field = this.field(key, model)
           if (field) {
+            /**
+             * @TODO-DP: add to select all field-level required fields
+             */
+            const selectForReqruiedFields = getRequiredFields(
+              modelName,
+              field.documentation || '',
+              this.options,
+              this.context
+            )
+            if (selectForReqruiedFields) {
+              PrismaSelect.mergeDeep(filteredObject, { select: selectForReqruiedFields })
+            }
+
             if (field.kind !== 'object') {
               filteredObject.select[key] = true
             } else {
@@ -248,6 +262,20 @@ export class PrismaSelect {
           }
         }
       })
+
+      /**
+       * @TODO-DP: add to select all type-level required fields
+       */
+      const selectForReqruiedFields = getRequiredFields(
+        modelName,
+        this.info.schema.getType(modelName)?.description || '',
+        this.options,
+        this.context
+      )
+      if (selectForReqruiedFields) {
+        PrismaSelect.mergeDeep(filteredObject, { select: selectForReqruiedFields })
+      }
+
       return filteredObject
     } else {
       return selectObject
