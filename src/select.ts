@@ -226,14 +226,14 @@ export class PrismaSelect {
             /**
              * @TODO-DP: add to select all field-level required fields
              */
-            const selectForReqruiedFields = getRequiredFields(
+            const selectForRequiredFields = getRequiredFields(
               modelName,
               field.documentation || '',
               this.options,
               this.context
             )
-            if (selectForReqruiedFields) {
-              PrismaSelect.mergeDeep(filteredObject, { select: selectForReqruiedFields })
+            if (selectForRequiredFields) {
+              PrismaSelect.mergeDeep(filteredObject, { select: selectForRequiredFields })
             }
 
             if (field.kind !== 'object') {
@@ -266,14 +266,14 @@ export class PrismaSelect {
       /**
        * @TODO-DP: add to select all type-level required fields
        */
-      const selectForReqruiedFields = getRequiredFields(
+      const selectForRequiredFields = getRequiredFields(
         modelName,
         this.info.schema.getType(modelName)?.description || '',
         this.options,
         this.context
       )
-      if (selectForReqruiedFields) {
-        PrismaSelect.mergeDeep(filteredObject, { select: selectForReqruiedFields })
+      if (selectForRequiredFields) {
+        PrismaSelect.mergeDeep(filteredObject, { select: selectForRequiredFields })
       }
 
       return filteredObject
