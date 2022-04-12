@@ -6,10 +6,7 @@
 
 See this thread for tweet-sized introduction:
 
-
-
 [<img src="https://user-images.githubusercontent.com/837032/139540771-8e84d6d2-0c43-4673-a9f7-9e335d47c8a7.png" width="450"/>](https://twitter.com/dimaip/status/1454480140872949761)
-
 
 ## Theory
 
@@ -54,6 +51,7 @@ Note how roles may accept arbitrary arguments that would be passed to the role m
 const config = {
   globalRoles: {
     Owner: {
+      matcherDependenciesSelect: (roleArgs) => ({ [roleArgs.userField]: true }),
       matcher: (ctx, record, roleArgs) => ctx.currentUser?.id === record?.[roleArgs.userField],
       queryConstraint: (ctx, roleArgs) => ({
         [roleArgs.userField]: ctx.currentUser?.id,
@@ -63,6 +61,7 @@ const config = {
   rolesPerType: {
     Purchases: {
       Owner: {
+        matcherDependenciesSelect: (roleArgs) => ({ id: true, [roleArgs.userField]: true }),
         matcher: (ctx, record, roleArgs) => someCondition(ctx) && ctx.currentUser?.id === record?.[roleArgs.userField],
         queryConstraint: (ctx, roleArgs) =>
           someCondition(ctx) && {
@@ -76,6 +75,7 @@ const config = {
 
 `matcher` is used to restrict access to individual records. It should return `boolean`.
 `queryConstraint` is used to generate a `where` clause for Prisma which should be used to restrict list fields and list relations.
+`roleArgs` is used to declare the data requirements needed for the above validators to work (i.e. everything you want to be inside `record.*` must be listed there). It can be either an object in Prisma's `select` argument format or a function that takes role arguments and returns that object.
 
 3. Apply `context.withAuth` to every Prisma call like this:
 

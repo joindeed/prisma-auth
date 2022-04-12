@@ -8,6 +8,7 @@ import { RoleArgs } from './descriptionToRoles'
 export interface Role<C, R, W> {
   matcher: (context: C, record: R, roleArgs: RoleArgs) => boolean
   queryConstraint: (context: C, roleArgs: RoleArgs) => W | boolean
+  matcherDependenciesSelect?: Record<string, any> | ((roleArgs: RoleArgs) => Record<string, any>)
 }
 
 export interface RolesPerType<C = any, R = any, W = any> {
