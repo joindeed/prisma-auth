@@ -8,7 +8,7 @@ import { GraphQLResolveInfo } from 'graphql'
 import graphqlFields from 'graphql-fields'
 import { Configuration } from '.'
 import { getListWhereConstrains } from './getListWhereConstrains'
-import { getRequiredFields } from './getRequiredFields'
+import { getMatcherDependenciesSelect } from './getMatcherDependenciesSelect'
 
 /**
  * Convert `info` to select object accepted by `prisma client`.
@@ -224,16 +224,16 @@ export class PrismaSelect {
           const field = this.field(key, model)
           if (field) {
             /**
-             * @TODO-DP: add to select all field-level required fields
+             * @NOTE-DP: add to select all field-level required fields
              */
-            const selectForRequiredFields = getRequiredFields(
+            const matcherDependenciesSelect = getMatcherDependenciesSelect(
               modelName,
               field.documentation || '',
               this.options,
               this.context
             )
-            if (selectForRequiredFields) {
-              PrismaSelect.mergeDeep(filteredObject, { select: selectForRequiredFields })
+            if (matcherDependenciesSelect) {
+              PrismaSelect.mergeDeep(filteredObject, { select: matcherDependenciesSelect })
             }
 
             if (field.kind !== 'object') {
@@ -264,16 +264,16 @@ export class PrismaSelect {
       })
 
       /**
-       * @TODO-DP: add to select all type-level required fields
+       * @NOTE-DP: add to select all type-level required fields
        */
-      const selectForRequiredFields = getRequiredFields(
+      const matcherDependenciesSelect = getMatcherDependenciesSelect(
         modelName,
         this.info.schema.getType(modelName)?.description || '',
         this.options,
         this.context
       )
-      if (selectForRequiredFields) {
-        PrismaSelect.mergeDeep(filteredObject, { select: selectForRequiredFields })
+      if (matcherDependenciesSelect) {
+        PrismaSelect.mergeDeep(filteredObject, { select: matcherDependenciesSelect })
       }
 
       return filteredObject

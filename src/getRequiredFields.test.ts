@@ -1,5 +1,5 @@
 import { RolesPerType, Role } from '.'
-import { getRequiredFields } from './getRequiredFields'
+import { getMatcherDependenciesSelect } from './getMatcherDependenciesSelect'
 
 interface Context {
   currentUser: {
@@ -22,7 +22,7 @@ const userContext: Context = {
   withAuth: (t) => t,
 }
 
-test('getRequiredFields', async () => {
+test('getMatcherDependenciesSelect', async () => {
   const rolesPerType: RolesPerType<Context, Purchase> = {
     User: {
       Owner: {
@@ -30,7 +30,7 @@ test('getRequiredFields', async () => {
         queryConstraint: (ctx) => ({
           id: ctx.currentUser?.id,
         }),
-        requiredFields: (args: any) => ({ [args.testArg]: true }),
+        matcherDependenciesSelect: (args: any) => ({ [args.testArg]: true }),
       },
       Nobody: {
         matcher: () => false,
@@ -42,13 +42,18 @@ test('getRequiredFields', async () => {
     Admin: {
       matcher: (ctx) => ctx.currentUser?.isAdmin === true,
       queryConstraint: (ctx) => ctx.currentUser?.isAdmin === true,
-      requiredFields: { globalTestField: true },
+      matcherDependenciesSelect: { globalTestField: true },
     },
   }
   const config = { globalRoles, rolesPerType }
 
   expect(
-    await getRequiredFields('User', '@Auth(read:[Admin,Owner(testArg:testFieldFromArgs)])', config, userContext)
+    await getMatcherDependenciesSelect(
+      'User',
+      '@Auth(read:[Admin,Owner(testArg:testFieldFromArgs)])',
+      config,
+      userContext
+    )
   ).toEqual({
     globalTestField: true,
     testFieldFromArgs: true,

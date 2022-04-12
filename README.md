@@ -51,7 +51,7 @@ Note how roles may accept arbitrary arguments that would be passed to the role m
 const config = {
   globalRoles: {
     Owner: {
-      requiredFields: (roleArgs) => ({ [roleArgs.userField]: true }),
+      matcherDependenciesSelect: (roleArgs) => ({ [roleArgs.userField]: true }),
       matcher: (ctx, record, roleArgs) => ctx.currentUser?.id === record?.[roleArgs.userField],
       queryConstraint: (ctx, roleArgs) => ({
         [roleArgs.userField]: ctx.currentUser?.id,
@@ -61,7 +61,7 @@ const config = {
   rolesPerType: {
     Purchases: {
       Owner: {
-        requiredFields: (roleArgs) => ({ id: true, [roleArgs.userField]: true }),
+        matcherDependenciesSelect: (roleArgs) => ({ id: true, [roleArgs.userField]: true }),
         matcher: (ctx, record, roleArgs) => someCondition(ctx) && ctx.currentUser?.id === record?.[roleArgs.userField],
         queryConstraint: (ctx, roleArgs) =>
           someCondition(ctx) && {
