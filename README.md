@@ -80,13 +80,30 @@ const config = {
 3. Apply `context.withAuth` to every Prisma call like this:
 
 ```js
-resolve: async (parent, args, context) =>
+resolve: async (parent, args, context) => {
   return context.prisma.purchases.findMany(context.withAuth({
     where: {
       some: 'query'
     }
   }))
-},
+}
+```
+
+If you return a composite non-Prisma type from the resolver, you'd need to manually specify the path within the return type and the correct enity type:
+
+```js
+resolve: async (parent, args, context) => {
+  const users = context.prisma.users.findMany(context.withAuth({
+    where: {
+      some: 'query'
+    }
+  }, 'path.toUser', 'UserType'))
+  return users.map(user => ({
+    path: {
+      toUser: users
+    }
+  }))
+}
 ```
 
 4. Configure your GraphQL schema to use the middleware
