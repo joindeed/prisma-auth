@@ -106,6 +106,17 @@ resolve: async (parent, args, context) => {
 }
 ```
 
+If your resolver requires some data to be available on the `parent`, you should specify it in the config passed to `makeAuthorizationMiddlewares`:
+
+```js
+makeAuthorizationMiddlewares({
+  defaultFields: {
+    // when `usersCount` field is selected, `users` will be selected too
+    Company: (select) => ('usersCount' in select ? { users: true } : {}),
+  }
+})
+```
+
 4. Configure your GraphQL schema to use the middleware
 
 ```js
