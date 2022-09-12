@@ -104,7 +104,6 @@ resolve: async (parent, args, context) => {
     }
   }))
 }
-```
 
 If your resolver requires some data to be available on the `parent`, you should specify it in the config passed to `makeAuthorizationMiddlewares`:
 
