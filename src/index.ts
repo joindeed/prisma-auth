@@ -26,7 +26,7 @@ export interface Configuration {
 
 // @TODO: fix types
 export type Info = any
-export type Context = { auth?: unknown; withAuth: <T extends unknown>(query: T) => T }
+export type Context = { auth?: unknown; withAuth: <T extends unknown>(query: T, path?: string, type?: string) => T }
 
 export type Middleware = IMiddlewareResolver
 
