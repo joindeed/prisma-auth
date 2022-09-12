@@ -201,10 +201,10 @@ export class PrismaSelect {
   private filterBy(modelName: string, selectObject: any, isRootList?: boolean) {
     const model = this.model(modelName)
     if (model && typeof selectObject === 'object') {
-      let defaultFields = {}
+      let select = {}
       if (this.defaultFields && this.defaultFields[modelName]) {
         const modelFields = this.defaultFields[modelName]
-        defaultFields =
+        select =
           typeof modelFields === 'function'
             ? modelFields(selectObject.select)
             : modelFields
@@ -212,7 +212,7 @@ export class PrismaSelect {
 
       const filteredObject = {
         ...selectObject,
-        select: defaultFields,
+        select,
       }
 
       /**
