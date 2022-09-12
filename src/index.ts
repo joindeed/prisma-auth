@@ -22,6 +22,11 @@ export interface Configuration {
     [roleName: string]: Role<any, any, any>
   }
   dmmf?: any[]
+  defaultFields?: {
+    [key: string]:
+      | { [key: string]: boolean }
+      | ((select: any) => { [key: string]: boolean | undefined })
+  }
 }
 
 // @TODO: fix types

@@ -1,4 +1,4 @@
-import { Configuration, Middleware, RolesPerType } from '.'
+import { Configuration, Middleware } from '.'
 
 import { descriptionToRoles } from './descriptionToRoles'
 import { patchResponse } from './patchResponse'

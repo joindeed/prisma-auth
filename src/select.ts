@@ -78,6 +78,10 @@ export class PrismaSelect {
     return models
   }
 
+  get defaultFields() {
+    return this.options?.defaultFields;
+  }
+
   private get fields() {
     return graphqlFields(
       this.info,
@@ -197,9 +201,18 @@ export class PrismaSelect {
   private filterBy(modelName: string, selectObject: any, isRootList?: boolean) {
     const model = this.model(modelName)
     if (model && typeof selectObject === 'object') {
+      let select = {}
+      if (this.defaultFields && this.defaultFields[modelName]) {
+        const modelFields = this.defaultFields[modelName]
+        select =
+          typeof modelFields === 'function'
+            ? modelFields(selectObject.select)
+            : modelFields
+      }
+
       const filteredObject = {
         ...selectObject,
-        select: {},
+        select,
       }
 
       /**
