@@ -24,13 +24,16 @@ import { PrismaSelect } from './select'
 export const makeListConstraintMiddleware: (config: Configuration) => Middleware =
   (options) => async (resolve, parent, args, context, info) => {
     const select = new PrismaSelect(info, options, context)
-    context.auth = select.value
-
     // The order here is important: auth must be set last so it wouldn't be possible to override it with the query
-    context.withAuth = <T extends unknown>(query: T, path?: string, type?: string): T => {
+    const withAuth = <T extends unknown>(query: T, path?: string, type?: string): T => {
       const selectValue = path && type ? select.valueOf(path, type) : select.value
       return PrismaSelect.mergeDeep({}, query, selectValue)
     }
 
-    return resolve(parent, args, context, info)
+    return resolve(parent, args, {
+      ...context, 
+      withAuth, 
+      // @deprecated, use `withAuth` instead
+      auth: select.value
+    }, info)
   }
