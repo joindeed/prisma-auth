@@ -104,6 +104,23 @@ resolve: async (parent, args, context) => {
     }
   }))
 }
+```
+
+Additionally, if you want to make any arbitrary Prisma query not related to the GraphQL return type at all (e.g. say you want to count something and get the count with respect to the constraints),
+and want to get the `where` constraints for it, you may leave the `path` argument empty and only provide the `type`:
+
+```js
+resolve: async (parent, args, context) => {
+  return context.prisma.users.count(context.withAuth({
+    where: {
+      some: 'query'
+    }
+  }, undefined, 'UserType'))
+}
+```
+
+**NOTE**: in this case `withAuth` would only generate the `where` constraint, but not a `select` clause.
+
 
 If your resolver requires some data to be available on the `parent`, you should specify it in the config passed to `makeAuthorizationMiddlewares`:
 
