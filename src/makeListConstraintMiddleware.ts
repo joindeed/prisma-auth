@@ -44,7 +44,7 @@ export const makeListConstraintMiddleware: (config: Configuration) => Middleware
           options,
           context
         )
-        selectValue = { where }
+        selectValue = where ? { where } : {}
       // Get the value for the root return type of the resolver
       } else {
         selectValue = select.value
