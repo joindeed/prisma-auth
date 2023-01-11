@@ -29,23 +29,28 @@ export const getListWhereConstrains = (
     return null
   }
   return {
-    OR: readRoles
-      .map((role) => {
-        const queryConstraint =
-          rolesPerType?.[fieldType as keyof RolesPerType]?.[role.name]?.queryConstraint ||
-          globalRoles?.[role.name]?.queryConstraint
-        if (!queryConstraint) {
-          throw new Error(`Query constraint for role "${role.name}" in model "${fieldType}" not found`)
-        }
-        const result = queryConstraint(context, role.args)
-        if (typeof result === 'object') {
-          return result
-        }
-        if (result === true) {
-          return alwaysTrueCondition
-        }
-        return null
-      })
-      .filter(Boolean),
+    // We wrap the enforced query into AND to make sure it doesn't clash with the user's OR query
+    AND: [
+      {
+        OR: readRoles
+          .map((role) => {
+            const queryConstraint =
+              rolesPerType?.[fieldType as keyof RolesPerType]?.[role.name]?.queryConstraint ||
+              globalRoles?.[role.name]?.queryConstraint
+            if (!queryConstraint) {
+              throw new Error(`Query constraint for role "${role.name}" in model "${fieldType}" not found`)
+            }
+            const result = queryConstraint(context, role.args)
+            if (typeof result === 'object') {
+              return result
+            }
+            if (result === true) {
+              return alwaysTrueCondition
+            }
+            return null
+          })
+          .filter(Boolean),
+      },
+    ],
   }
 }
