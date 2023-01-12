@@ -67,24 +67,36 @@ test('makeListConstraintMiddleware', async () => {
   const config = { globalRoles, rolesPerType }
 
   expect(await getListWhereConstrains('User', '@Auth(read:[Admin,Owner])', config, userContext)).toEqual({
-    OR: [
+    AND: [
       {
-        id: 'myUserId',
+        OR: [
+          {
+            id: 'myUserId',
+          },
+        ],
       },
     ],
   })
   expect(await getListWhereConstrains('User', '@Auth(read:[Admin,Owner])', config, adminContext)).toEqual({
-    OR: [
-      alwaysTrueCondition,
+    AND: [
       {
-        id: 'myUserId',
+        OR: [
+          alwaysTrueCondition,
+          {
+            id: 'myUserId',
+          },
+        ],
       },
     ],
   })
   expect(await getListWhereConstrains('User', '@Auth(read:[Admin,Owner])', config, strangerContext)).toEqual({
-    OR: [
+    AND: [
       {
-        id: 'strangerUserId',
+        OR: [
+          {
+            id: 'strangerUserId',
+          },
+        ],
       },
     ],
   })
