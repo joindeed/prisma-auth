@@ -153,6 +153,12 @@ Currently, this package only supports `read` operations, since it's the biggest 
 
 Nevertheless, we might want to support them in the future.
 
+## Release
+
+- Manually edit version number in package.json (duh).
+- Create a new release on Github, create a tag matching the new version number
+- The actual publish would happen automatically (observe the GH actions that it actually does)
+
 ## Credit
 
 This package has been proudly developed by the Deed team!
