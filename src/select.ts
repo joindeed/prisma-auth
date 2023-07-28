@@ -114,7 +114,12 @@ export class PrismaSelect {
   }
 
   static isObject(item: any) {
-    return item && typeof item === 'object' && !Array.isArray(item) && typeof item?.toISOString !== 'function'
+    return (
+      item &&
+      typeof item === 'object' &&
+      !Array.isArray(item) &&
+      Object.prototype.toString.call(item) !== '[object Date]'
+    )
   }
 
   static mergeDeep(target: any, ...sources: any[]): any {
