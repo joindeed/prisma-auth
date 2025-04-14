@@ -100,4 +100,13 @@ test('makeListConstraintMiddleware', async () => {
       },
     ],
   })
+  expect(await getListWhereConstrains('User', '@Auth(read:[Admin,Nobody])', config, strangerContext)).toEqual({
+    AND: [
+      {
+        id: {
+          equals: 'ffffffffffffffffffffffff',
+        }
+      },
+    ],
+  })
 })
