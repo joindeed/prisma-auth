@@ -17,6 +17,17 @@ import { patchResponse } from './patchResponse'
 export const makeFieldConstraintMiddleware: (roles: Configuration) => Middleware =
   ({ rolesPerType, globalRoles }) =>
   (resolve, parent, args, context, info) => {
+    // Skip all logic for GraphQL introspection fields/types
+    const parentTypeName = String(info?.parentType?.name || '')
+    const returnTypeString = String(info?.returnType || '')
+    if (
+      parentTypeName.startsWith('__') ||
+      returnTypeString.includes('__') ||
+      String(info?.fieldName || '').startsWith('__')
+    ) {
+      return resolve(parent, args, context, info)
+    }
+
     const description = info.parentType.getFields()[info.fieldName].description
     const typeName = info.parentType.name
 
