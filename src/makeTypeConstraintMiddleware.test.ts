@@ -92,3 +92,26 @@ test('makeTypeConstraintMiddleware', async () => {
 
   expect(await fieldConstraintMiddleware(resolve, myPurchase, {}, strangerContext, info)).toBe(null)
 })
+
+test('makeTypeConstraintMiddleware skips on introspection types', async () => {
+  const rolesPerType: RolesPerType<any, any> = {}
+  const globalRoles: { [role: string]: Role<any, any, any> } = {}
+  const mw = makeTypeConstraintMiddleware({ rolesPerType, globalRoles })
+  const resolve = (record: any) => record
+
+  const result = { some: 'data' }
+  const info: Info = {
+    fieldName: 'inputFields',
+    returnType: '[__InputValue]!' as any,
+    schema: {
+      getType: (typeName: string) => ({ description: '', name: typeName }),
+    },
+    parentType: {
+      name: '__Type',
+      getFields: () => ({} as any),
+    } as any,
+    cacheControl: '',
+  } as any
+
+  expect(await mw(resolve, result, {}, {}, info)).toBe(result)
+})

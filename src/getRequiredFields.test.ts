@@ -59,3 +59,13 @@ test('getMatcherDependenciesSelect', async () => {
     testFieldFromArgs: true,
   })
 })
+
+test('PrismaSelect skips introspection types', async () => {
+  // We validate by constructing a fake info for an introspection field and ensuring no crash and empty select
+  const { PrismaSelect } = require('./select')
+  const info: any = {
+    returnType: '[__InputValue]!',
+  }
+  const select = new PrismaSelect(info)
+  expect(select.value).toEqual({})
+})

@@ -135,4 +135,19 @@ describe('makeFieldConstraintMiddleware', () => {
     expect(fieldConstraintMiddleware(resolve, foreignPurchase, {}, adminContext, info)).toEqual('foreignOwnerOnlyField')
     expect(fieldConstraintMiddleware(resolve, foreignPurchase, {}, strangerContext, info)).toEqual([])
   })
+
+  it('skips constraints on GraphQL introspection fields', () => {
+    const info: Info = {
+      fieldName: 'inputFields',
+      returnType: '[__InputValue]!' as any,
+      parentType: {
+        name: '__Type',
+        getFields: () => ({} as any),
+      } as any,
+      cacheControl: '',
+    } as any
+
+    // Even for a stranger context, introspection fields should not be constrained/altered
+    expect(fieldConstraintMiddleware(resolve, foreignPurchase, {}, strangerContext, info)).toBe('foreignOwnerOnlyField')
+  })
 })

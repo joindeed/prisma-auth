@@ -57,6 +57,10 @@ export class PrismaSelect {
 
   get value() {
     const rawReturnType = String(this.info.returnType)
+    // Skip for GraphQL introspection types
+    if (rawReturnType.includes('__')) {
+      return {}
+    }
     const isList = /^\[(\w+)(!)?\]!?$/.test(rawReturnType)
     const returnType = rawReturnType.replace(/]/g, '').replace(/\[/g, '').replace(/!/g, '')
     this.isAggregate = returnType.includes('Aggregate')
@@ -79,7 +83,7 @@ export class PrismaSelect {
   }
 
   get defaultFields() {
-    return this.options?.defaultFields;
+    return this.options?.defaultFields
   }
 
   private get fields() {
@@ -197,6 +201,10 @@ export class PrismaSelect {
    *
    **/
   valueWithFilter(modelName: string, isRootList?: boolean) {
+    // Skip for GraphQL introspection types
+    if (modelName.startsWith('__')) {
+      return {}
+    }
     return this.filterBy(modelName, this.getSelect(this.fields), isRootList)
   }
 
@@ -204,15 +212,16 @@ export class PrismaSelect {
    * @NOTE-DP: we overlay all security `where` clauses within this method
    */
   private filterBy(modelName: string, selectObject: any, isRootList?: boolean) {
+    // Skip for GraphQL introspection types
+    if (modelName.startsWith('__')) {
+      return selectObject
+    }
     const model = this.model(modelName)
     if (model && typeof selectObject === 'object') {
       let select = {}
       if (this.defaultFields && this.defaultFields[modelName]) {
         const modelFields = this.defaultFields[modelName]
-        select =
-          typeof modelFields === 'function'
-            ? modelFields(selectObject.select)
-            : modelFields
+        select = typeof modelFields === 'function' ? modelFields(selectObject.select) : modelFields
       }
 
       const filteredObject = {

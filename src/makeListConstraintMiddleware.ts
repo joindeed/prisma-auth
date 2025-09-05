@@ -24,28 +24,33 @@ import { PrismaSelect } from './select'
  */
 export const makeListConstraintMiddleware: (config: Configuration) => Middleware =
   (options) => async (resolve, parent, args, context, info) => {
+    // Skip all logic for GraphQL introspection fields/types
+    const parentTypeName = String(info?.parentType?.name || '')
+    const returnTypeString = String(info?.returnType || '')
+    if (
+      parentTypeName.startsWith('__') ||
+      returnTypeString.includes('__') ||
+      String(info?.fieldName || '').startsWith('__')
+    ) {
+      return resolve(parent, args, context, info)
+    }
+
     const select = new PrismaSelect(info, options, context)
-    
+
     const withAuth = <T extends unknown>(query: T, path?: string, type?: string): T => {
       let selectValue
-      
+
       // Get nested value from the return type of the resolver
       if (path && type) {
         selectValue = select.valueOf(path, type)
-      // Get ONLY `where` clause for the specified type, without relation to the resolver at all
-      // The `select` clause would have to be crafted manually in this case, as it's not possible to deduce it from the return type of the resolver
-      // Useful for getting the auth constraints in situations where it's not possible to get it from the resolver return type
-      // (e.g. a `count` resolver that only returns a number)
+        // Get ONLY `where` clause for the specified type, without relation to the resolver at all
+        // The `select` clause would have to be crafted manually in this case, as it's not possible to deduce it from the return type of the resolver
+        // Useful for getting the auth constraints in situations where it's not possible to get it from the resolver return type
+        // (e.g. a `count` resolver that only returns a number)
       } else if (!path && type) {
-        const where = 
-          getListWhereConstrains(
-          type,
-          info.schema.getType(type)?.description || '',
-          options,
-          context
-        )
+        const where = getListWhereConstrains(type, info.schema.getType(type)?.description || '', options, context)
         selectValue = where ? { where } : {}
-      // Get the value for the root return type of the resolver
+        // Get the value for the root return type of the resolver
       } else {
         selectValue = select.value
       }
@@ -53,10 +58,15 @@ export const makeListConstraintMiddleware: (config: Configuration) => Middleware
       return PrismaSelect.mergeDeep({}, query || {}, selectValue)
     }
 
-    return resolve(parent, args, {
-      ...context, 
-      withAuth, 
-      // @deprecated, use `withAuth` instead
-      auth: select.value
-    }, info)
+    return resolve(
+      parent,
+      args,
+      {
+        ...context,
+        withAuth,
+        // @deprecated, use `withAuth` instead
+        auth: select.value,
+      },
+      info
+    )
   }

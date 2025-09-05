@@ -33,6 +33,17 @@ const extractNonListType = (type: unknown): string | null => {
 export const makeTypeConstraintMiddleware: (config: Configuration) => Middleware =
   ({ rolesPerType, globalRoles }) =>
   async (resolve, parent, args, context, info) => {
+    // Skip all logic for GraphQL introspection fields/types
+    const parentTypeName = String(info?.parentType?.name || '')
+    const returnTypeString = String(info?.returnType || '')
+    if (
+      parentTypeName.startsWith('__') ||
+      returnTypeString.includes('__') ||
+      String(info?.fieldName || '').startsWith('__')
+    ) {
+      return resolve(parent, args, context, info)
+    }
+
     const result = await resolve(parent, args, context, info)
 
     const typeName = extractNonListType(info.returnType)
