@@ -130,13 +130,30 @@ export class PrismaSelect {
     if (!sources.length) return target
     const source: any = sources.shift()
 
+    // List of dangerous keys that could lead to prototype pollution
+    const dangerousKeys = ['__proto__', 'constructor', 'prototype']
+
     if (PrismaSelect.isObject(target) && PrismaSelect.isObject(source)) {
       for (const key in source) {
+        // Skip dangerous keys to prevent prototype pollution
+        if (dangerousKeys.includes(key)) {
+          continue
+        }
+
+        // Only process own properties of the source object
+        if (!Object.prototype.hasOwnProperty.call(source, key)) {
+          continue
+        }
+
         if (PrismaSelect.isObject(source[key])) {
-          if (!target[key]) Object.assign(target, { [key]: {} })
+          // Create nested object if it doesn't exist
+          if (!target[key]) {
+            target[key] = {}
+          }
           PrismaSelect.mergeDeep(target[key], source[key])
         } else {
-          Object.assign(target, { [key]: source[key] })
+          // Use direct property assignment for better control
+          target[key] = source[key]
         }
       }
     }
